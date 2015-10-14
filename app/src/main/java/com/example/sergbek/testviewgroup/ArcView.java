@@ -61,7 +61,7 @@ public class ArcView extends View {
 
         float startAngle = 270 - sweepAngle / 2;
 
-        canvas.rotate(sweepAngle *count, mCenterX, mCenterY);
+        canvas.rotate(sweepAngle * count, mCenterX, mCenterY);
 
         mPArc.setColor(0xFF574153);
         mPArc.setAntiAlias(true);

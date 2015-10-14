@@ -168,15 +168,13 @@ public class MyGroup extends ViewGroup {
     public boolean onTouchEvent(MotionEvent event) {
         this.mDetector.onTouchEvent(event);
 
-        return super.onTouchEvent(event);
+        return Utils.inCircle(event.getX(), event.getY(), width / 2, height / 2, mRadius / 2);
     }
-
 
 
     public int getBarabanRotation() {
         return mBarabanRotation;
     }
-
 
 
     public void setBarabanRotation(int rotation) {
@@ -186,8 +184,8 @@ public class MyGroup extends ViewGroup {
 
         int count = getChildCount();
 
-        for (int i = 0; i < count-1; i++) {
-            final ArcView child = (ArcView) getChildAt(i);
+        for (int i = 0; i < count - 1; i++) {
+            final View child = getChildAt(i);
             child.setRotation(rotation);
         }
 
