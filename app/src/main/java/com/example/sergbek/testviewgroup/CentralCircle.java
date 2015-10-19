@@ -10,8 +10,9 @@ import android.view.View;
 public class CentralCircle extends View {
 
     private int mRadius;
-    private int mCentX;
-    private int mCentY;
+    private int mCenterX;
+    private int mCenterY;
+
     private Paint mPaint;
 
     public CentralCircle(Context context) {
@@ -24,22 +25,20 @@ public class CentralCircle extends View {
         init();
     }
 
-    private void init(){
+    private void init() {
         mPaint = new Paint();
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        mCenterX = getWidth() / 2;
+        mCenterY = getHeight() / 2;
+
+        mRadius = getWidth() / 2;
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
-
-//        int mCenterX = mCentX;
-//        int mCenterY = mCentY ;
-
-        int mCenterX = getWidth() /2;
-        int mCenterY = getHeight() /2 ;
-
-        mRadius = getWidth() /2;
-
         mPaint.setColor(0xFF01E98C);
         mPaint.setAntiAlias(true);
         canvas.drawCircle(mCenterX, mCenterY, mRadius / 7, mPaint);
@@ -48,17 +47,5 @@ public class CentralCircle extends View {
         mPaint.setAntiAlias(true);
         canvas.drawCircle(mCenterX, mCenterY, mRadius / 11, mPaint);
 
-    }
-
-    public void setRadius(int radius) {
-        mRadius = radius;
-    }
-
-    public void setCentX(int centX) {
-        mCentX = centX;
-    }
-
-    public void setCentY(int centY) {
-        mCentY = centY;
     }
 }

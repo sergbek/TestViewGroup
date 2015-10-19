@@ -1,25 +1,18 @@
 package com.example.sergbek.testviewgroup;
 
-import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.Shader;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.Scroller;
 
 
@@ -28,12 +21,11 @@ public class MyGroup extends ViewGroup {
     private float sweepAngle;
 
     private CentralCircle centralCircle;
-    private int mRadius;
-    private int width;
-    private int height;
 
+    private int mRadius;
     private int mCenterX;
     private int mCenterY;
+    private int strokeWidth = 5;
 
     private Paint mPMainCircle;
 
@@ -48,6 +40,7 @@ public class MyGroup extends ViewGroup {
     private static final int DESIRED_HEIGHT = 150;
 
     public static final int DEG_CIRCLE = 360;
+    public static final int ANGLE_ROTATION = 270;
     public static final int FLING_VELOCITY_DOWNSCALE = 4;
     public static final int AUTO_CENTER_ANIM_DURATION = 350;
 
@@ -60,7 +53,6 @@ public class MyGroup extends ViewGroup {
         super(context, attrs);
         init();
     }
-
 
     private void init() {
         setWillNotDraw(false);
@@ -82,7 +74,6 @@ public class MyGroup extends ViewGroup {
 
         mAutoCenterAnimator = ObjectAnimator.ofInt(this, "BarabanRotation", 0);
 
-
         mDetector = new GestureDetector(getContext(), new GestureListener());
         mDetector.setIsLongpressEnabled(false);
     }
@@ -94,58 +85,46 @@ public class MyGroup extends ViewGroup {
         addView(centralCircle);
     }
 
-
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 
         int count = getChildCount();
         sweepAngle = (float) DEG_CIRCLE / (count - 1);
 
-        int sizeArc = mRadius - 5;
+        int sizeArc = mRadius - strokeWidth;
         int startAngle = 0;
         for (int i = 0; i < count - 1; i++) {
             final ArcView child = (ArcView) getChildAt(i);
             child.setSweepAngle(sweepAngle);
 
-//            child.setRadius(mRadius);
-//            child.setCentX(mCenterX);
-//            child.setCentY(mCenterY);
-//            child.setCount(i);
             child.setColor(0xFF574153);
 
             child.setStartAngle(startAngle);
             child.setEndAngle(startAngle + (int) sweepAngle);
             startAngle += sweepAngle;
-//            final int width = child.getMeasuredWidth();
-//            final int height = child.getMeasuredHeight();
 
-//            child.layout(left, top, right, bottom);
             child.layout(mCenterX - sizeArc, mCenterY - sizeArc, mCenterX + sizeArc, mCenterY + sizeArc);
             child.setRotation(sweepAngle * i);
         }
 
-
-//        centralCircle.setRadius(mRadius);
-//        centralCircle.setCentX(mCenterX);
-//        centralCircle.setCentY(mCenterY);
-//        centralCircle.layout(left, top, right, bottom);
         centralCircle.layout(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-
         canvas.drawCircle(mCenterX, mCenterY, mRadius, mPMainCircle);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
+        int width;
+        int height;
+
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
 
         //Measure Width
         if (widthMode == MeasureSpec.EXACTLY) {
@@ -175,12 +154,6 @@ public class MyGroup extends ViewGroup {
         mCenterY = height / 2;
 
         setMeasuredDimension(width, height);
-
-//        int count = getChildCount();
-//        for (int i = 0; i < count; i++) {
-//            final View child = getChildAt(i);
-//            measureChild(child, widthMeasureSpec, heightMeasureSpec);
-//        }
     }
 
     @Override
@@ -190,16 +163,13 @@ public class MyGroup extends ViewGroup {
         return Utils.inCircle(event.getX(), event.getY(), mCenterX, mCenterY, mRadius);
     }
 
-
     public int getBarabanRotation() {
         return mBarabanRotation;
     }
 
-
     public void setBarabanRotation(int rotation) {
         rotation = (rotation % DEG_CIRCLE + DEG_CIRCLE) % DEG_CIRCLE;
         mBarabanRotation = rotation;
-//        setRotation(rotation);
 
         int count = getChildCount();
 
@@ -276,14 +246,10 @@ public class MyGroup extends ViewGroup {
             return true;
         }
 
-
-
         @Override
         public boolean onDown(MotionEvent e) {
             stopScrolling();
             mAutoCenterAnimator.cancel();
-
-//            getRootView().invalidate();
             return true;
         }
 
@@ -302,12 +268,11 @@ public class MyGroup extends ViewGroup {
 
         double angle = Math.toDegrees(Math.atan2(dy, dx)) - 180;
         if (angle < 0) {
-            angle += 360;
+            angle += DEG_CIRCLE;
         }
 
-        return (angle + 360 - getBarabanRotation()) % 360;
+        return (angle + DEG_CIRCLE - getBarabanRotation()) % DEG_CIRCLE;
     }
-
 
     private void setLayerToHW() {
         setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -315,21 +280,20 @@ public class MyGroup extends ViewGroup {
 
     private void moveItemUp(ArcView arcView) {
         int itemCenterAngle = ((arcView.getStartAngle() + arcView.getEndAngle()) / 2) + getBarabanRotation();
-        itemCenterAngle %= 360;
+        itemCenterAngle %= DEG_CIRCLE;
 
-        if (itemCenterAngle != 270) {
+        if (itemCenterAngle != ANGLE_ROTATION) {
             int rotateAngle;
-            if (itemCenterAngle > 270 || itemCenterAngle < 90) {
-                rotateAngle = (270 - 360 - itemCenterAngle) % 360;
+            if (itemCenterAngle > ANGLE_ROTATION || itemCenterAngle < 90) {
+                rotateAngle = (ANGLE_ROTATION - DEG_CIRCLE - itemCenterAngle) % DEG_CIRCLE;
             } else {
-                rotateAngle = (270 + 360 - itemCenterAngle) % 360;
+                rotateAngle = (ANGLE_ROTATION + DEG_CIRCLE - itemCenterAngle) % DEG_CIRCLE;
             }
 
             mAutoCenterAnimator.setIntValues(mBarabanRotation, rotateAngle + mBarabanRotation);
             mAutoCenterAnimator.setDuration(AUTO_CENTER_ANIM_DURATION).start();
         }
     }
-
 
 //    @Override
 //    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
