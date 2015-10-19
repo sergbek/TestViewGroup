@@ -52,11 +52,12 @@ public class MyGroup extends ViewGroup {
 
     public MyGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
+
         TypedArray typedArray = getContext().getTheme().obtainStyledAttributes(attrs,
-                R.styleable.ArcView,
+                R.styleable.MyGroups,
                 0, 0);
         try {
-            this.strokeWidth = typedArray.getInt(R.styleable.MyGroup_strokeWidth, 5);
+            this.strokeWidth = typedArray.getInt(R.styleable.MyGroups_strokeWidth, 5);
         } finally {
             typedArray.recycle();
         }
@@ -120,6 +121,18 @@ public class MyGroup extends ViewGroup {
         }
 
     }
+
+    @Override
+    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        int xPadding = (getPaddingLeft() + getPaddingRight());
+        int yPadding = (getPaddingTop() + getPaddingBottom());
+
+        width = width - xPadding;
+        height = height - yPadding;
+
+        mRadius = Math.min(width, height) / 2;
+    }
+
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -186,8 +199,8 @@ public class MyGroup extends ViewGroup {
         if (height < width)
             mRadius = height / 2;
 
-        mCenterX = width / 2;
-        mCenterY = height / 2;
+        mCenterX = width / 2 + (getPaddingLeft() - getPaddingRight()) / 2;
+        mCenterY = height / 2 + (getPaddingTop() - getPaddingBottom()) / 2;
 
         setMeasuredDimension(width, height);
     }
@@ -303,16 +316,4 @@ public class MyGroup extends ViewGroup {
             mScroller.forceFinished(true);
         }
     }
-
-//    @Override
-//    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
-//        int xpad = (getPaddingLeft() + getPaddingRight());
-//        int ypad = (getPaddingTop() + getPaddingBottom());
-//
-//        width = width - xpad;
-//        height = height - ypad;
-//
-//
-//        mRadius = Math.min(width, height) / 2;
-//    }
 }
