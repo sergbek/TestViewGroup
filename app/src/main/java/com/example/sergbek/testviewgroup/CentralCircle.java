@@ -31,7 +31,7 @@ public class CentralCircle extends View {
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        mCenterX = getWidth() / 2;
+        mCenterX = getWidth() / 2;//TODO: Why are you using getWidth() method if you have width argument?
         mCenterY = getHeight() / 2;
 
         mRadius = getWidth() / 2;
@@ -39,11 +39,11 @@ public class CentralCircle extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        mPaint.setColor(0xFF01E98C);
+        mPaint.setColor(0xFF01E98C);//TODO: make a constant; move to init() method
         mPaint.setAntiAlias(true);
         canvas.drawCircle(mCenterX, mCenterY, mRadius / 7, mPaint);
 
-        mPaint.setColor(0xFFED4702);
+        mPaint.setColor(0xFFED4702);//TODO: make a constant; move to init() method
         mPaint.setAntiAlias(true);
         canvas.drawCircle(mCenterX, mCenterY, mRadius / 11, mPaint);
 

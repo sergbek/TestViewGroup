@@ -10,7 +10,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 
-public class ArcView extends View {
+public class ArcView extends View {//TODO: if class is not expandable - set final modifier
 
     private Paint mPArc;
     private Paint mPLine;
@@ -68,11 +68,11 @@ public class ArcView extends View {
 
         mRadius = getWidth() / 2;
 
-        leftX = mCenterX + (Math.cos(Math.toRadians(270 - sweepAngle / 2)) * mRadius);
+        leftX = mCenterX + (Math.cos(Math.toRadians(270 - sweepAngle / 2)) * mRadius);//TODO: magic number
         leftY = mCenterY + (Math.sin(Math.toRadians(270 - sweepAngle / 2)) * mRadius);
         rightX = mCenterX + (Math.cos(Math.toRadians(270 + sweepAngle / 2)) * mRadius);
 
-        sizeImage = (mRadius * 30) / 100;
+        sizeImage = (mRadius * 30) / 100;//TODO: magic number
         positionLeft = mCenterX - sizeImage / 2;
         positionTop = mCenterY - (mRadius * 2 / 3) - sizeImage / 2;
     }
@@ -81,21 +81,21 @@ public class ArcView extends View {
     protected void onDraw(Canvas canvas) {
         mArcBounds.set(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
 
-        float startAngle = 270 - sweepAngle / 2;
+        float startAngle = 270 - sweepAngle / 2;//TODO: magic number
 
         canvas.rotate(90 + sweepAngle / 2, mCenterX, mCenterY);
 
-        mPArc.setColor(mColor);
-        mPArc.setAntiAlias(true);
+        mPArc.setColor(mColor);//TODO: move to init() method
+        mPArc.setAntiAlias(true);//TODO: move to init() method
         canvas.drawArc(mArcBounds, startAngle, sweepAngle, true, mPArc);
 
-        mPLine.setAntiAlias(true);
-        mPLine.setColor(0xFFED4702);
-        mPLine.setStrokeWidth(4f);
+        mPLine.setAntiAlias(true);//TODO: move to init() method
+        mPLine.setColor(0xFFED4702);//TODO: make a constant; move to init() method
+        mPLine.setStrokeWidth(4f);//TODO: make a constant; move to init() method
         canvas.drawLine(mCenterX, mCenterY, (int) leftX, (int) leftY, mPLine);
         canvas.drawLine(mCenterX, mCenterY, (int) rightX, (int) leftY, mPLine);
 
-        mIcon.setBounds(positionLeft, positionTop, positionLeft + sizeImage, positionTop + sizeImage);
+        mIcon.setBounds(positionLeft, positionTop, positionLeft + sizeImage, positionTop + sizeImage);//TODO: move to onSizeChanged() method
         mIcon.draw(canvas);
     }
 

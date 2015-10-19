@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Scroller;
 
 
-public class MyGroup extends ViewGroup {
+public class MyGroup extends ViewGroup {//TODO: if class is not expandable - set final modifier
 
     private float sweepAngle;
 
@@ -57,7 +57,7 @@ public class MyGroup extends ViewGroup {
                 R.styleable.MyGroups,
                 0, 0);
         try {
-            this.strokeWidth = typedArray.getInt(R.styleable.MyGroups_strokeWidth, 5);
+            this.strokeWidth = typedArray.getInt(R.styleable.MyGroups_strokeWidth, 5);//TODO: rename styleable; change type from integer to dimens
         } finally {
             typedArray.recycle();
         }
@@ -66,7 +66,7 @@ public class MyGroup extends ViewGroup {
     }
 
     @Override
-    protected void onFinishInflate() {
+    protected void onFinishInflate() { //TODO: use final modifier or @CallSuper annotation
         super.onFinishInflate();
         centralCircle = new CentralCircle(getContext());
         addView(centralCircle);
@@ -76,7 +76,7 @@ public class MyGroup extends ViewGroup {
         setWillNotDraw(false);
         setLayerToHW();
         mPMainCircle = new Paint();
-        mPMainCircle.setShader(new LinearGradient(0, 100, 100, 0, Color.parseColor("#FFF04C08"),
+        mPMainCircle.setShader(new LinearGradient(0, 100, 100, 0, Color.parseColor("#FFF04C08"),//TODO: make a constant
                 Color.parseColor("#FFE18D68"), Shader.TileMode.MIRROR));
         mPMainCircle.setColor(Color.parseColor("#FF574153"));
         mPMainCircle.setAntiAlias(true);
@@ -90,14 +90,14 @@ public class MyGroup extends ViewGroup {
             }
         });
 
-        mAutoCenterAnimator = ObjectAnimator.ofInt(this, "BarabanRotation", 0);
+        mAutoCenterAnimator = ObjectAnimator.ofInt(this, "BarabanRotation", 0); //TODO: Try use Property<T, V> (for better performance)
 
         mDetector = new GestureDetector(getContext(), new GestureListener());
         mDetector.setIsLongpressEnabled(false);
     }
 
     private void setLayerToHW() {
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        setLayerType(View.LAYER_TYPE_HARDWARE, null);//TODO: "set" method must accept arguments (for better code style)
     }
 
     private void tickScrollAnimation() {
@@ -109,11 +109,11 @@ public class MyGroup extends ViewGroup {
         }
     }
 
-    public void setBarabanRotation(int rotation) {
+    public void setBarabanRotation(int rotation) {//TODO: rename method "Baraban" to "cylinder" or something like that
         rotation = (rotation % DEG_CIRCLE + DEG_CIRCLE) % DEG_CIRCLE;
         mBarabanRotation = rotation;
 
-        int count = getChildCount();
+        int count = getChildCount(); //TODO: create method "getArcCount". "getChildCount() - 1" isn't readable
 
         for (int i = 0; i < count - 1; i++) {
             final ArcView child = (ArcView) getChildAt(i);
@@ -146,7 +146,7 @@ public class MyGroup extends ViewGroup {
             final ArcView child = (ArcView) getChildAt(i);
             child.setSweepAngle(sweepAngle);
 
-            child.setColor(0xFF574153);
+            child.setColor(0xFF574153);//TODO: make a constant
 
             child.setStartAngle(startAngle);
             child.setEndAngle(startAngle + (int) sweepAngle);
@@ -165,7 +165,7 @@ public class MyGroup extends ViewGroup {
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {//TODO: methods order must match with the order of their call
 
         int width;
         int height;
@@ -261,9 +261,9 @@ public class MyGroup extends ViewGroup {
 
             for (int i = 0; i < getChildCount() - 1; i++) {
                 final ArcView child = (ArcView) getChildAt(i);
-                child.setColor(0xFF574153);
+                child.setColor(0xFF574153);//TODO: make a constant
                 if (touchAngle > child.getStartAngle() && touchAngle < child.getEndAngle()) {
-                    child.setColor(0xDD77DD77);
+                    child.setColor(0xDD77DD77);//TODO: make a constant
 
                     moveItemUp(child);
                 }
