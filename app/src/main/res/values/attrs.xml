@@ -3,4 +3,7 @@
     <declare-styleable name="ArcView">
         <attr name="src" format="reference"/>
     </declare-styleable>
+    <declare-styleable name="MyGroup">
+        <attr name="strokeWidth" format="integer"/>
+    </declare-styleable>
 </resources>

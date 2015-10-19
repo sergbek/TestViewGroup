@@ -3,6 +3,7 @@ package com.example.sergbek.testviewgroup;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -25,7 +26,7 @@ public class MyGroup extends ViewGroup {
     private int mRadius;
     private int mCenterX;
     private int mCenterY;
-    private int strokeWidth = 5;
+    private int strokeWidth;
 
     private Paint mPMainCircle;
 
@@ -51,7 +52,23 @@ public class MyGroup extends ViewGroup {
 
     public MyGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
+        TypedArray typedArray = getContext().getTheme().obtainStyledAttributes(attrs,
+                R.styleable.ArcView,
+                0, 0);
+        try {
+            this.strokeWidth = typedArray.getInt(R.styleable.MyGroup_strokeWidth, 5);
+        } finally {
+            typedArray.recycle();
+        }
+
         init();
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        centralCircle = new CentralCircle(getContext());
+        addView(centralCircle);
     }
 
     private void init() {
@@ -78,11 +95,30 @@ public class MyGroup extends ViewGroup {
         mDetector.setIsLongpressEnabled(false);
     }
 
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-        centralCircle = new CentralCircle(getContext());
-        addView(centralCircle);
+    private void setLayerToHW() {
+        setLayerType(View.LAYER_TYPE_HARDWARE, null);
+    }
+
+    private void tickScrollAnimation() {
+        if (!mScroller.isFinished()) {
+            mScroller.computeScrollOffset();
+            setBarabanRotation(mScroller.getCurrY());
+        } else {
+            mScrollAnimator.cancel();
+        }
+    }
+
+    public void setBarabanRotation(int rotation) {
+        rotation = (rotation % DEG_CIRCLE + DEG_CIRCLE) % DEG_CIRCLE;
+        mBarabanRotation = rotation;
+
+        int count = getChildCount();
+
+        for (int i = 0; i < count - 1; i++) {
+            final ArcView child = (ArcView) getChildAt(i);
+            child.rotateTo(rotation + (sweepAngle * i));
+        }
+
     }
 
     @Override
@@ -167,28 +203,6 @@ public class MyGroup extends ViewGroup {
         return mBarabanRotation;
     }
 
-    public void setBarabanRotation(int rotation) {
-        rotation = (rotation % DEG_CIRCLE + DEG_CIRCLE) % DEG_CIRCLE;
-        mBarabanRotation = rotation;
-
-        int count = getChildCount();
-
-        for (int i = 0; i < count - 1; i++) {
-            final ArcView child = (ArcView) getChildAt(i);
-            child.rotateTo(rotation + (sweepAngle * i));
-        }
-
-    }
-
-    private void tickScrollAnimation() {
-        if (!mScroller.isFinished()) {
-            mScroller.computeScrollOffset();
-            setBarabanRotation(mScroller.getCurrY());
-        } else {
-            mScrollAnimator.cancel();
-        }
-    }
-
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
@@ -246,6 +260,38 @@ public class MyGroup extends ViewGroup {
             return true;
         }
 
+        private double getTouchAngle(MotionEvent e) {
+            int xPosition = (int) e.getX();
+            int yPosition = (int) e.getY();
+
+            int dx = mCenterX - xPosition;
+            int dy = mCenterY - yPosition;
+
+            double angle = Math.toDegrees(Math.atan2(dy, dx)) - 180;
+            if (angle < 0) {
+                angle += DEG_CIRCLE;
+            }
+
+            return (angle + DEG_CIRCLE - getBarabanRotation()) % DEG_CIRCLE;
+        }
+
+        private void moveItemUp(ArcView arcView) {
+            int itemCenterAngle = ((arcView.getStartAngle() + arcView.getEndAngle()) / 2) + getBarabanRotation();
+            itemCenterAngle %= DEG_CIRCLE;
+
+            if (itemCenterAngle != ANGLE_ROTATION) {
+                int rotateAngle;
+                if (itemCenterAngle > ANGLE_ROTATION || itemCenterAngle < 90) {
+                    rotateAngle = (ANGLE_ROTATION - DEG_CIRCLE - itemCenterAngle) % DEG_CIRCLE;
+                } else {
+                    rotateAngle = (ANGLE_ROTATION + DEG_CIRCLE - itemCenterAngle) % DEG_CIRCLE;
+                }
+
+                mAutoCenterAnimator.setIntValues(mBarabanRotation, rotateAngle + mBarabanRotation);
+                mAutoCenterAnimator.setDuration(AUTO_CENTER_ANIM_DURATION).start();
+            }
+        }
+
         @Override
         public boolean onDown(MotionEvent e) {
             stopScrolling();
@@ -253,45 +299,8 @@ public class MyGroup extends ViewGroup {
             return true;
         }
 
-    }
-
-    private void stopScrolling() {
-        mScroller.forceFinished(true);
-    }
-
-    private double getTouchAngle(MotionEvent e) {
-        int xPosition = (int) e.getX();
-        int yPosition = (int) e.getY();
-
-        int dx = mCenterX - xPosition;
-        int dy = mCenterY - yPosition;
-
-        double angle = Math.toDegrees(Math.atan2(dy, dx)) - 180;
-        if (angle < 0) {
-            angle += DEG_CIRCLE;
-        }
-
-        return (angle + DEG_CIRCLE - getBarabanRotation()) % DEG_CIRCLE;
-    }
-
-    private void setLayerToHW() {
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
-    }
-
-    private void moveItemUp(ArcView arcView) {
-        int itemCenterAngle = ((arcView.getStartAngle() + arcView.getEndAngle()) / 2) + getBarabanRotation();
-        itemCenterAngle %= DEG_CIRCLE;
-
-        if (itemCenterAngle != ANGLE_ROTATION) {
-            int rotateAngle;
-            if (itemCenterAngle > ANGLE_ROTATION || itemCenterAngle < 90) {
-                rotateAngle = (ANGLE_ROTATION - DEG_CIRCLE - itemCenterAngle) % DEG_CIRCLE;
-            } else {
-                rotateAngle = (ANGLE_ROTATION + DEG_CIRCLE - itemCenterAngle) % DEG_CIRCLE;
-            }
-
-            mAutoCenterAnimator.setIntValues(mBarabanRotation, rotateAngle + mBarabanRotation);
-            mAutoCenterAnimator.setDuration(AUTO_CENTER_ANIM_DURATION).start();
+        private void stopScrolling() {
+            mScroller.forceFinished(true);
         }
     }
 
