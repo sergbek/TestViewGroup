@@ -32,8 +32,13 @@ public class CentralCircle extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-        int mCenterX = mCentX / 2;
-        int mCenterY = mCentY / 2;
+//        int mCenterX = mCentX;
+//        int mCenterY = mCentY ;
+
+        int mCenterX = getWidth() /2;
+        int mCenterY = getHeight() /2 ;
+
+        mRadius = getWidth() /2;
 
         mPaint.setColor(0xFF01E98C);
         mPaint.setAntiAlias(true);

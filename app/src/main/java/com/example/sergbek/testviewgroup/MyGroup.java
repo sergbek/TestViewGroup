@@ -1,5 +1,6 @@
 package com.example.sergbek.testviewgroup;
 
+import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -30,6 +31,10 @@ public class MyGroup extends ViewGroup {
     private int mRadius;
     private int width;
     private int height;
+
+    private int mCenterX;
+    private int mCenterY;
+
     private Paint mPMainCircle;
 
     private int mBarabanRotation;
@@ -59,6 +64,7 @@ public class MyGroup extends ViewGroup {
 
     private void init() {
         setWillNotDraw(false);
+        setLayerToHW();
         mPMainCircle = new Paint();
         mPMainCircle.setShader(new LinearGradient(0, 100, 100, 0, Color.parseColor("#FFF04C08"),
                 Color.parseColor("#FFE18D68"), Shader.TileMode.MIRROR));
@@ -74,7 +80,9 @@ public class MyGroup extends ViewGroup {
             }
         });
 
-        mAutoCenterAnimator = ObjectAnimator.ofInt(getContext(), "BarabanRotation", 0);
+        mAutoCenterAnimator = ObjectAnimator.ofInt(this, "BarabanRotation", 0);
+
+
         mDetector = new GestureDetector(getContext(), new GestureListener());
         mDetector.setIsLongpressEnabled(false);
     }
@@ -93,33 +101,41 @@ public class MyGroup extends ViewGroup {
         int count = getChildCount();
         sweepAngle = (float) DEG_CIRCLE / (count - 1);
 
+        int sizeArc = mRadius - 5;
+        int startAngle = 0;
         for (int i = 0; i < count - 1; i++) {
             final ArcView child = (ArcView) getChildAt(i);
             child.setSweepAngle(sweepAngle);
-            child.setRadius((mRadius / 2) - 5);
-            child.setCentX(width);
-            child.setCentY(height);
-            child.setCount(i);
+
+//            child.setRadius(mRadius);
+//            child.setCentX(mCenterX);
+//            child.setCentY(mCenterY);
+//            child.setCount(i);
+            child.setColor(0xFF574153);
+
+            child.setStartAngle(startAngle);
+            child.setEndAngle(startAngle + (int) sweepAngle);
+            startAngle += sweepAngle;
 //            final int width = child.getMeasuredWidth();
 //            final int height = child.getMeasuredHeight();
 
-            child.layout(left, top, right, bottom);
-//            child.setRotation(sweepAngle * i);
+//            child.layout(left, top, right, bottom);
+            child.layout(mCenterX - sizeArc, mCenterY - sizeArc, mCenterX + sizeArc, mCenterY + sizeArc);
+            child.setRotation(sweepAngle * i);
         }
 
 
-        centralCircle.setRadius(mRadius / 2);
-        centralCircle.setCentX(width);
-        centralCircle.setCentY(height);
-        centralCircle.layout(left, top, right, bottom);
+//        centralCircle.setRadius(mRadius);
+//        centralCircle.setCentX(mCenterX);
+//        centralCircle.setCentY(mCenterY);
+//        centralCircle.layout(left, top, right, bottom);
+        centralCircle.layout(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        int mCenterX = width / 2;
-        int mCenterY = height / 2;
 
-        canvas.drawCircle(mCenterX, mCenterY, mRadius / 2, mPMainCircle);
+        canvas.drawCircle(mCenterX, mCenterY, mRadius, mPMainCircle);
     }
 
     @Override
@@ -134,14 +150,14 @@ public class MyGroup extends ViewGroup {
         //Measure Width
         if (widthMode == MeasureSpec.EXACTLY) {
             width = widthSize;
-            mRadius = width;
+            mRadius = width / 2;
         } else if (widthMode == MeasureSpec.AT_MOST) {
             width = Math.min(DESIRED_WIDTH, widthSize);
         } else {
             width = DESIRED_WIDTH;
         }
 
-        mRadius = width;
+        mRadius = width / 2;
 
         //Measure Height
         if (heightMode == MeasureSpec.EXACTLY) {
@@ -153,7 +169,10 @@ public class MyGroup extends ViewGroup {
         }
 
         if (height < width)
-            mRadius = height;
+            mRadius = height / 2;
+
+        mCenterX = width / 2;
+        mCenterY = height / 2;
 
         setMeasuredDimension(width, height);
 
@@ -168,7 +187,7 @@ public class MyGroup extends ViewGroup {
     public boolean onTouchEvent(MotionEvent event) {
         this.mDetector.onTouchEvent(event);
 
-        return Utils.inCircle(event.getX(), event.getY(), width / 2, height / 2, mRadius / 2);
+        return Utils.inCircle(event.getX(), event.getY(), mCenterX, mCenterY, mRadius);
     }
 
 
@@ -185,8 +204,8 @@ public class MyGroup extends ViewGroup {
         int count = getChildCount();
 
         for (int i = 0; i < count - 1; i++) {
-            final View child = getChildAt(i);
-            child.setRotation(rotation);
+            final ArcView child = (ArcView) getChildAt(i);
+            child.rotateTo(rotation + (sweepAngle * i));
         }
 
     }
@@ -207,8 +226,8 @@ public class MyGroup extends ViewGroup {
             float scrollTheta = Utils.vectorToScalarScroll(
                     distanceX,
                     distanceY,
-                    e2.getX() - (width / 2),
-                    e2.getY() - (height / 2));
+                    e2.getX() - mCenterX,
+                    e2.getY() - mCenterY);
             setBarabanRotation(getBarabanRotation() - (int) scrollTheta / FLING_VELOCITY_DOWNSCALE);
 
             return true;
@@ -220,8 +239,8 @@ public class MyGroup extends ViewGroup {
             float scrollTheta = Utils.vectorToScalarScroll(
                     velocityX,
                     velocityY,
-                    e2.getX() - width / 2,
-                    e2.getY() - height / 2);
+                    e2.getX() - mCenterX,
+                    e2.getY() - mCenterY);
             mScroller.fling(
                     0,
                     getBarabanRotation(),
@@ -239,7 +258,29 @@ public class MyGroup extends ViewGroup {
         }
 
         @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+
+            double touchAngle = getTouchAngle(e);
+
+            for (int i = 0; i < getChildCount() - 1; i++) {
+                final ArcView child = (ArcView) getChildAt(i);
+                child.setColor(0xFF574153);
+                if (touchAngle > child.getStartAngle() && touchAngle < child.getEndAngle()) {
+                    child.setColor(0xDD77DD77);
+
+                    moveItemUp(child);
+                }
+                child.invalidate();
+            }
+
+            return true;
+        }
+
+
+
+        @Override
         public boolean onDown(MotionEvent e) {
+            stopScrolling();
             mAutoCenterAnimator.cancel();
 
 //            getRootView().invalidate();
@@ -247,4 +288,58 @@ public class MyGroup extends ViewGroup {
         }
 
     }
+
+    private void stopScrolling() {
+        mScroller.forceFinished(true);
+    }
+
+    private double getTouchAngle(MotionEvent e) {
+        int xPosition = (int) e.getX();
+        int yPosition = (int) e.getY();
+
+        int dx = mCenterX - xPosition;
+        int dy = mCenterY - yPosition;
+
+        double angle = Math.toDegrees(Math.atan2(dy, dx)) - 180;
+        if (angle < 0) {
+            angle += 360;
+        }
+
+        return (angle + 360 - getBarabanRotation()) % 360;
+    }
+
+
+    private void setLayerToHW() {
+        setLayerType(View.LAYER_TYPE_HARDWARE, null);
+    }
+
+    private void moveItemUp(ArcView arcView) {
+        int itemCenterAngle = ((arcView.getStartAngle() + arcView.getEndAngle()) / 2) + getBarabanRotation();
+        itemCenterAngle %= 360;
+
+        if (itemCenterAngle != 270) {
+            int rotateAngle;
+            if (itemCenterAngle > 270 || itemCenterAngle < 90) {
+                rotateAngle = (270 - 360 - itemCenterAngle) % 360;
+            } else {
+                rotateAngle = (270 + 360 - itemCenterAngle) % 360;
+            }
+
+            mAutoCenterAnimator.setIntValues(mBarabanRotation, rotateAngle + mBarabanRotation);
+            mAutoCenterAnimator.setDuration(AUTO_CENTER_ANIM_DURATION).start();
+        }
+    }
+
+
+//    @Override
+//    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+//        int xpad = (getPaddingLeft() + getPaddingRight());
+//        int ypad = (getPaddingTop() + getPaddingBottom());
+//
+//        width = width - xpad;
+//        height = height - ypad;
+//
+//
+//        mRadius = Math.min(width, height) / 2;
+//    }
 }

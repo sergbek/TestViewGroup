@@ -12,17 +12,20 @@ import android.view.View;
 
 public class ArcView extends View {
 
-    private int mRadius;
     private Paint mPArc;
     private Paint mPLine;
-    private RectF mBarabanBounds;
+    private RectF mArcBounds;
+
     private float sweepAngle;
 
-    int count;
-    private Drawable mIcon;
+    private int mRadius;
+    private int mCenterX;
+    private int mCenterY;
+    private int mStartAngle;
+    private int mEndAngle;
 
-    private int mCentX;
-    private int mCentY;
+    private Drawable mIcon;
+    private int mColor;
 
     public ArcView(Context context) {
         super(context);
@@ -49,23 +52,25 @@ public class ArcView extends View {
     private void init() {
         mPArc = new Paint();
         mPLine = new Paint();
-        mBarabanBounds = new RectF();
+        mArcBounds = new RectF();
+
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        int mCenterX = mCentX / 2;
-        int mCenterY = mCentY / 2;
 
-        mBarabanBounds.set(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
+
+        mArcBounds.set(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
 
         float startAngle = 270 - sweepAngle / 2;
 
-        canvas.rotate(sweepAngle * count, mCenterX, mCenterY);
+        canvas.rotate(90 + sweepAngle / 2, mCenterX, mCenterY);
 
-        mPArc.setColor(0xFF574153);
+
+
+        mPArc.setColor(mColor);
         mPArc.setAntiAlias(true);
-        canvas.drawArc(mBarabanBounds, startAngle, sweepAngle, true, mPArc);
+        canvas.drawArc(mArcBounds, startAngle, sweepAngle, true, mPArc);
 
 
         double y = mCenterY + (Math.sin(Math.toRadians(270 - sweepAngle / 2)) * mRadius);
@@ -88,29 +93,41 @@ public class ArcView extends View {
         mIcon.setBounds(positionLeft, positionTop, positionLeft + sizeImage, positionTop + sizeImage);
         mIcon.draw(canvas);
 
-//        Log.d("www", mRadius + "");
-
     }
 
     public void setSweepAngle(float sweepAngle) {
         this.sweepAngle = sweepAngle;
     }
 
-
-    public void setCentX(int centX) {
-        mCentX = centX;
+    public void setStartAngle(int startAngle) {
+        mStartAngle = startAngle;
     }
 
-    public void setCentY(int centY) {
-        mCentY = centY;
+    public void setEndAngle(int endAngle) {
+        mEndAngle = endAngle;
     }
 
-    public void setRadius(int radius) {
-        mRadius = radius;
+    public void setColor(int color) {
+        mColor = color;
     }
 
-    public void setCount(int count) {
-        this.count = count;
+    public int getStartAngle() {
+        return mStartAngle;
     }
 
+    public int getEndAngle() {
+        return mEndAngle;
+    }
+
+    public void rotateTo(float pieRotation) {
+        setRotation(pieRotation);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        mCenterX = getWidth() / 2;
+        mCenterY = getHeight() / 2;
+
+        mRadius = getWidth() / 2;
+    }
 }
